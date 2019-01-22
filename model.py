@@ -1,25 +1,31 @@
-##Todos
-#read up on various models
-#skip the time I drove off the track
-#use right and left cameras - maybe
-#bird's eye view?
-#use generator
+#Todos
+    #read up on various models
+    #use right and left cameras - maybe
+    #bird's eye view?
+    #use generator
 
-##done
-#crop the image
-#flip images and invert direction for augmentation
+#DONE
+    #crop the image
+    #flip images and invert direction for augmentation
+    #skip the time I drove off the track
+        ####center_2019_01_22_08_55_15_013.jpg
+        ####center_2019_01_22_08_55_17_260.jpg
+        ####2019_01_22_08_55_15, 2019_01_22_08_55_16, 2019_01_22_08_55_17
 
 import csv
 import os
 import cv2
 import numpy as np
 import sklearn
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
+
 from tqdm import tqdm
 
 #import data
 lines = []
-with open('./data/driving_log.csv') as csvfile:
+with open('./SmallData/driving_log.csv') as csvfile:
     reader = csv.reader(csvfile)
     for line in tqdm(reader):
         lines.append(line)
@@ -28,21 +34,20 @@ images = []
 angles = []
 counter = 0
 
-for line in lines:
-    if line[0] == "center":
-        continue
+for line in tqdm(lines):
     source_path = line[0]
     filename = source_path.split('/')[-1]
-    current_path = './data/IMG/' + filename
+    if ((source_path == 'center')|("2019_01_22_08_55_15" in filename)|("2019_01_22_08_55_16" in filename)|("2019_01_22_08_55_17" in filename)):
+        continue
+
+    current_path = './SmallData/IMG/' + filename
     image = cv2.imread(current_path)
     images.append(image)
     angle = float(line[3])
     angles.append(angle)
     counter += 1
-    if counter > 150: 
+    if counter > 140: 
         break
-
-
 
 
 # compile and train the model using the generator function
@@ -63,8 +68,8 @@ for image, angle in zip(images, angles):
 
 X_train = np.array(augmented_images)
 y_train = np.array(augmented_angles)
-cv2.imwrite('test.jpg', augmented_images[10])
-#plt.imshow(X_train[0])
+cv2.imwrite('test.jpg', augmented_images[150])
+
 
 #build network architecture
 from keras.models import Sequential
@@ -93,16 +98,17 @@ history_object = model.fit(X_train, y_train, validation_split = 0.2, shuffle = T
 #    nb_epoch=5, verbose=1)
 
 ### print the keys contained in the history object
-print(history_object.history.keys())
+#print('Loss %s' %(history_object.history['loss']))
+#print('Val Loss %s' %(history_object.history['val_loss']))
 
 ### plot the training and validation loss for each epoch
-plt.plot(history_object.history['loss'])
+#plt.plot(history_object.history['loss'])
 #plt.plot(history_object.history['val_loss'])
 #plt.title('model mean squared error loss')
 #plt.ylabel('mean squared error loss')
 #plt.xlabel('epoch')
 #plt.legend(['training set', 'validation set'], loc='upper right')
-#plt.show()
+#plt.show(block=True)
 
 #save model
 model.save('model.h5')
