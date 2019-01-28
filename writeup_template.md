@@ -1,20 +1,24 @@
 # **Behavioral Cloning** 
 
-The goals / steps of this project are the following:
-* Use the simulator to collect data of good driving behavior
-* Build, a convolution neural network in Keras that predicts steering angles from images
-* Train and validate the model with a training and validation set
-* Test that the model successfully drives around track one without leaving the road
-* Summarize the results with a written report
-
-
 [//]: # (Image References)
-
 [image1]: ./output/NVidia_model.jpg "NVidia Model Visualization"
 [image2]: ./output/recoveryside.jpg "Recovery from side of road"
 [image3]: ./output/recovery_dirt.jpg "Recovery from dirt"
 [image4]: ./output/centerdriving.jpg "Center lane driving"
 [video1]: ./output/output_video.mp4 "Track 1 video"
+[video2]: ./output/output_jungle.mp4 "Jungle track video"
+
+
+The goal of this project is to build a convolutional network in Keras that can autonomously steer a car around a a simulated track.  As you can see in the two output videos, the model sucessfully navigates the car around both the simple and the advanced tracks.
+
+Simple track:
+![alt text][video1]
+
+
+Jungle track:
+![alt text][video1]
+
+
 
 ## Sources
 My work for this project relies heavily on two sources:
