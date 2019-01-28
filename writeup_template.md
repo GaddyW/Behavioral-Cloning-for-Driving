@@ -16,7 +16,7 @@ Simple track:
 
 
 Jungle track:
-![alt text][video1]
+![alt text][video2]
 
 
 
