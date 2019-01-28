@@ -1,34 +1,12 @@
-#Todos
-    #read up on various models
-    #use right and left cameras - maybe
-    #bird's eye view?
-      
-    
-
-#DONE
-    #use both data sets
-    #batch size 128
-    #use generator
-    #crop the image
-    #flip images and invert direction for augmentation
-    #BGR to RGB
-    #reshape down
-    #skip the time I drove off the track
-        ####center_2019_01_22_08_55_15_013.jpg
-        ####center_2019_01_22_08_55_17_260.jpg
-        ####2019_01_22_08_55_15, 2019_01_22_08_55_16, 2019_01_22_08_55_17
-
 import csv
 import os
 import cv2
 import numpy as np
 import sklearn
 import matplotlib
-#matplotlib.use('TkAgg')
-#import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-#import data
+#import data:  defined a function to help import data since I had multiple data sources
 def inputdata(logfile, path, samples):
     counter = 0
     with open(logfile) as csvfile:
@@ -37,8 +15,6 @@ def inputdata(logfile, path, samples):
             if (line[0] == 'center'):
                 continue
             line[0] = path  + line[0]
-            #print(path)
-            #print(line[0])
             lines.append(line)
             #counter += 1
             #if counter > 140:
@@ -49,26 +25,29 @@ def inputdata(logfile, path, samples):
 lines = []
 #lines = inputdata('./SmallData/driving_log.csv', './SmallData/', lines)
 
+#import Udacity training data
 print('Their data')
 lines = inputdata('./data/driving_log.csv', './data/', lines)
 
+#import recovery data from attempts to return car to center of road from the shoulder
 print('Recovery data')
 lines = inputdata('./recovery/driving_log.csv', '', lines)
-#lines = inputdata('./recovery/driving_log.csv', '', lines)
 
+#import data from two laps around the track
 print('My data')
 lines = inputdata('/home/opt/MyTraining/driving_log.csv', '/home', lines)
 
+#import data from one lap around jungle track
 print('Track 2')
 lines = inputdata('/home/track2/driving_log.csv', '', lines)
 
-                
+#create training and validation sets                
 from sklearn.model_selection import train_test_split
 train_samples, validation_samples = train_test_split(lines, test_size=0.2)
 print('Training set size: %s' %len(train_samples))
 print('Validation set size: %s' %len(validation_samples))
 
-
+#generator function
 def generator(samples, batch_size=32):
     num_samples = len(samples)
     while 1: # Loop forever so the generator never terminates
@@ -80,19 +59,18 @@ def generator(samples, batch_size=32):
             angles = []
             for batch_sample in batch_samples:
                 source_path = batch_sample[0]
-                #filename = source_path.split('/')[-1]
                 
+                #get rid of bad training data
                 if (("2019_01_22_08_55_15" in source_path)|("2019_01_22_08_55_16" in source_path)|("2019_01_22_08_55_17" in source_path)|(not os.path.isfile(source_path))):
                     continue
-                #current_path = filename
-                #print(source_path)
+                
+                #convert to RGB for drive.py
                 bgr_image = cv2.imread(source_path)
                 b,g,r = cv2.split(bgr_image)       # get b,g,r
                 image = cv2.merge([r,g,b])     # switch it to rgb
-                #image = cv2.resize(image,(160, 80), interpolation = cv2.INTER_CUBIC)
                 angle = float(batch_sample[3])
                 
-                #augment images
+                #flip images and invert steering direction
                 images.append(image)
                 angles.append(angle)
                 images.append(cv2.flip(image,1))
@@ -117,7 +95,7 @@ from keras.layers.convolutional import Conv2D
 from keras.layers.pooling import MaxPooling2D
 from keras.layers import Cropping2D
 
-
+#use NVidia architecture
 model = Sequential()
 model.add(Cropping2D(cropping=((50,20), (0,0)), input_shape=(160,320,3)))
 model.add(Lambda(lambda x: x/255 - 0.5))
@@ -138,7 +116,6 @@ from keras.models import Model
 
 
 model.compile(loss='mse', optimizer = 'adam')
-#history_object = model.fit(X_train, y_train, validation_split = 0.2, shuffle = True, epochs = 5, verbose = 1)
 history_object = model.fit_generator(train_generator, steps_per_epoch = len(train_samples) // BS, 
                                      validation_data = validation_generator, validation_steps = len(validation_samples) // BS, 
                                      epochs=5, verbose=1)
@@ -146,17 +123,3 @@ history_object = model.fit_generator(train_generator, steps_per_epoch = len(trai
 
 #save model
 model.save('model.h5')
-
-
-### print the keys contained in the history object
-#print('Loss %s' %(history_object.history['loss']))
-#print('Val Loss %s' %(history_object.history['val_loss']))
-
-### plot the training and validation loss for each epoch
-#plt.plot(history_object.history['loss'])
-#plt.plot(history_object.history['val_loss'])
-#plt.title('model mean squared error loss')
-#plt.ylabel('mean squared error loss')
-#plt.xlabel('epoch')
-#plt.legend(['training set', 'validation set'], loc='upper right')
-#plt.show(block=True)
