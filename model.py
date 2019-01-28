@@ -47,7 +47,7 @@ train_samples, validation_samples = train_test_split(lines, test_size=0.2)
 print('Training set size: %s' %len(train_samples))
 print('Validation set size: %s' %len(validation_samples))
 
-#generator function
+#generator function:  Thanks to David Silver's lecture notes
 def generator(samples, batch_size=32):
     num_samples = len(samples)
     while 1: # Loop forever so the generator never terminates
@@ -95,7 +95,7 @@ from keras.layers.convolutional import Conv2D
 from keras.layers.pooling import MaxPooling2D
 from keras.layers import Cropping2D
 
-#use NVidia architecture
+#use NVidia architecture:  http://images.nvidia.com/content/tegra/automotive/images/2016/solutions/pdf/end-to-end-dl-using-px.pdf
 model = Sequential()
 model.add(Cropping2D(cropping=((50,20), (0,0)), input_shape=(160,320,3)))
 model.add(Lambda(lambda x: x/255 - 0.5))
